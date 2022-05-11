@@ -18,10 +18,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+//import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.HashMap;
+//import java.util.HashMap;
 import android.app.ProgressDialog;
 
 public class Tab2 extends Fragment {
@@ -67,30 +68,41 @@ public class Tab2 extends Fragment {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 dialog.dismiss();
                 if (task.isSuccessful()){
-                    Toast.makeText(getContext(), "Your Account Has Been Created. You Can Now Login!",Toast.LENGTH_SHORT).show();
+                   // DD! for debug Toast.makeText(getContext(), "Your Account Has Been Created. You Can Now Login!",Toast.LENGTH_SHORT).show();
 
-
-                    FirebaseUser firebaseUser = auth.getCurrentUser();
+                    // This piece of text adds the UserName to the new user's entry Firebase
+                    // FirebaseUser firebaseUser = auth.getCurrentUser();  // zecollokaris
+                    FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();  //DD
                     assert firebaseUser != null;
-                    String userid = firebaseUser.getUid();
+
+            /*      String userid = firebaseUser.getUid();  // zecollokaris Not Work Right
                     reference = FirebaseDatabase.getInstance().getReference("Users").child(userid);
                     HashMap<String, String> hashMap = new HashMap<>();
                     hashMap.put("id", userid);
                     hashMap.put("username", username);
                     hashMap.put("imageURL", "default");
-
+                    // DD: NOT WORK TRUE: userid is good; username is good BUT setValue(hashMap) return false ALWAYS
                     reference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+            */      // DD: Another Code Work right:
+                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(username)
+                            .build();
+                    firebaseUser.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-
+                            // DD: You old text now work good
+                            if (task.isSuccessful())
+                                Toast.makeText(getContext(), "Successful Your Account Has Been Created. You Can Now Login!", Toast.LENGTH_SHORT).show();
+                            else
+                                Toast.makeText(getContext(), "NOT Successful but Your Account Has Been Created. You Can Now Login! ", Toast.LENGTH_SHORT).show(); //ДО
                         }
                     });
                 } else {
                     Toast.makeText(getContext(), "You can't register with this email or password",Toast.LENGTH_SHORT).show();
                 }
             }
-        });
-    }
+        });  // end createUserWithEmailAndPassword
+    }  // end register
 
     public void createDialog(){
         dialog=new ProgressDialog(getContext());
